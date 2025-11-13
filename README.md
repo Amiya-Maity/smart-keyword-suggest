@@ -1,4 +1,4 @@
-# Smart Keyword Suggest v0.2.0
+# Smart Keyword Suggest v0.2.3
 
 ![VSCode](https://img.shields.io/badge/VSCode-Extension-blue) ![JavaScript](https://img.shields.io/badge/Language-JavaScript-yellow) ![TypeScript](https://img.shields.io/badge/Language-TypeScript-blue) ![Python](https://img.shields.io/badge/Language-Python-green) ![Java](https://img.shields.io/badge/Language-Java-orange)
 
@@ -8,11 +8,14 @@
 
 ## Features
 
-- ✅ Supports **JavaScript, TypeScript, Python, and Java**.
+- ✅ Supports **JavaScript, TypeScript, Python, Java, JSX, and TSX**.
 - ✅ Detects **typos in keywords and variables**.
 - ✅ Highlights errors with **red strikethrough decorations**.
 - ✅ Suggests **nearest correct keywords or symbols** using Levenshtein distance.
 - ✅ Tracks **in-scope variables and symbols** for accurate suggestions.
+- ✅ **Per-range suggestions**: Same word at different positions gets different suggestions based on local scope.
+- ✅ **Diagnostic-first suggestions**: TS/ESLint suggestions appear first, followed by extension suggestions.
+- ✅ **Max 3 suggestions per range** to keep CodeLens clean and focused.
 - ✅ Provides **inline CodeLens suggestions** to quickly replace typos.
 - ✅ Commands:
   - `Fix Typo` – Instantly replace a typo.
@@ -22,13 +25,14 @@
   - `Ctrl+Alt+R` → Refresh suggestions.
 - ✅ Debounced updates for **fast perceived response**.
 - ✅ Symbol caching for performance in **large files**.
+- ✅ **Centralized logging** with `[smart-keyword-suggest]` prefix for easy filtering.
 
 ---
 
 ## Installation
 
 1. Install from VSCode Marketplace or load the extension from VSIX.
-2. Open a supported language file mentioned in features
+2. Open a supported language file mentioned in features.
 3. Ensure TypeScript checking (`checkJs`) is enabled for JavaScript/TypeScript for undeclared variable detection (optional).
 
 ```json
@@ -38,7 +42,7 @@
     "noEmit": true,
     "target": "ES2020"
   },
-  "include": ["**/*.js", "**/*.ts"]
+  "include": ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
 }
 ```
 
@@ -60,6 +64,11 @@
 
    - Run `Refresh Keyword Suggestions` from the Command Palette or press `Ctrl+Alt+R` to manually refresh suggestions and decorations.
 
+4. **Scope-Aware Suggestions:**
+
+   - The same word at different positions in your code receives tailored suggestions based on the local scope.
+   - Example: `timere` at line 5 might suggest `timer` based on scope A, while `timere` at line 15 might suggest `tmer` based on scope B.
+
 ---
 
 ## Configuration
@@ -77,12 +86,15 @@ No extra configuration is needed. Optional:
 functon greet(name) {
   consol.log("Hello " + name); // ❌ 'functon' and 'consol' highlighted
 }
+
+let timere = "test"; // ❌ 'timere' highlighted
 ```
 
 - Suggestions:
 
   - Replace `'functon'` → `'function'`.
   - Replace `'consol'` → `'console'`.
+  - Replace `'timere'` → `'timer'` (primary from diagnostic) + `'tmer'`, `'texttimer'` (similar candidates, max 3 total).
 
 ---
 
@@ -93,6 +105,18 @@ functon greet(name) {
 - Levenshtein distance (`fast-levenshtein`)
 - Regex & CodeLens for inline suggestions
 - Symbol caching and debounced updates for performance
+- Centralized logger with prefixed output for filtering
+
+---
+
+## What's New in v0.2.3
+
+- **Per-Range Scope-Aware Suggestions**: Same word at different positions now receives different suggestions based on local scope.
+- **Merged Diagnostics**: Multiple diagnostics for the same word and range are merged with deduplicated suggestions.
+- **Diagnostic-First Ordering**: TS/ESLint suggestions appear first in CodeLens, followed by extension suggestions.
+- **Max 3 Suggestions**: CodeLens now shows at most 3 suggestions per range to keep the editor clean.
+- **JSX/TSX Support**: Special handling for JSX and TSX files with improved parse error filtering.
+- **Centralized Logging**: All console logs use the `[smart-keyword-suggest]` prefix for easy filtering in the extension host output.
 
 ---
 
@@ -101,7 +125,6 @@ functon greet(name) {
 - Best used with **plain files** and modern language modules.
 - Undeclared variable detection depends on TypeScript or ESLint configuration.
 - Cross-file variable tracking is not yet supported.
-- Scoped variable name recommendation is yet to come.
 
 ---
 
@@ -110,7 +133,7 @@ functon greet(name) {
 1. Mail at `amiyamaity7105@gmail.com` for collaboration or feedback.
 2. Make changes locally or request features.
 3. Submit feedback or updated version for review.
-4. Send back your improved version for review. If your changes help others — I’ll publish them to the Marketplace with **proper credits** 🏅
+4. Send back your improved version for review. If your changes help others — I'll publish them to the Marketplace with **proper credits** 🏅
 
 ---
 

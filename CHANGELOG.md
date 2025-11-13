@@ -71,3 +71,9 @@ Versioning follows [SemVer](https://semver.org/).
 - Incremental diagnostics for **very large files**.
 - Undo last fix support.
 - Suggestions for cross-file undeclared variables and dynamic imports.
+
+---
+
+## [0.2.3] - 2025-11-13
+### Fixed
+- 

@@ -162,13 +162,14 @@ async function refresh(editor) {
         if (!keywords.includes(sym))
             recentWords.push(sym);
     }
-    //   console.log(recentWords);
+    //   logger.info(recentWords);
     updateErrorWords(activeEditor.document);
     updateStrikethrough(activeEditor);
 }
 // --- Main Activation ---
 function activate(context) {
-    console.log("✅ JS Keyword Suggest extension activated!");
+    const logger = require('./logger');
+    logger.info("✅ JS Keyword Suggest extension activated!");
     // --- Auto refresh every 5 seconds ---
     const interval = setInterval(() => refresh(), 5000);
     context.subscriptions.push({ dispose: () => clearInterval(interval) });
@@ -235,6 +236,7 @@ function activate(context) {
     setTimeout(() => refresh(), 300);
 }
 function deactivate() {
-    console.log("🧹 JS Keyword Suggest extension deactivated.");
+    const logger = require('./logger');
+    logger.info("🧹 JS Keyword Suggest extension deactivated.");
 }
 //# sourceMappingURL=extension.js.map

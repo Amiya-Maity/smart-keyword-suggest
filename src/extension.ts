@@ -1,15 +1,20 @@
+/* eslint-disable curly */
 // extension.ts
 import * as vscode from "vscode";
+import { info } from "./logger";
 import { getNearestKeywords } from "./utils";
 import { getSymbolsInScope } from "./symbols";
 import { specialChecks } from "./specialChecks";
-import { error } from "console";
 
 // --- Supported languages ---
 const SUPPORTED_LANGUAGES = ["javascript", "typescript", "python", "java"];
 
 // --- Tracks words flagged by diagnostics ---
-const errorWords = new Map<string, vscode.Range[]>();
+// now store multiple occurrences per word so same token at different positions can have different suggestions
+const errorWords = new Map<
+  string,
+  { occurrences: { range: vscode.Range; suggests: string[] }[] }
+>();
 
 // --- Strikethrough red decoration ---
 const strikeDecoration = vscode.window.createTextEditorDecorationType({
@@ -50,7 +55,7 @@ class TypoCodeLensProvider implements vscode.CodeLensProvider {
       symbolCache.set(document.uri.toString(), inScopeSymbols);
     }
 
-    console.log("Symbols in scope:", inScopeSymbols);
+    info("Symbols in scope:", inScopeSymbols);
 
     // --- Get suggestions for all error words at once ---
     const suggestionsMap = getNearestKeywords(
@@ -59,27 +64,28 @@ class TypoCodeLensProvider implements vscode.CodeLensProvider {
       document.languageId
     );
 
-    for (const [word, ranges] of errorWords.entries()) {
-      const suggestions = suggestionsMap[word]; // ✅ this is string[]
-      if (!suggestions || suggestions.length === 0) continue;
+    // For each word, handle every occurrence independently
+    for (const [word, entry] of errorWords.entries()) {
+      const similarSuggestions = suggestionsMap[word] || []; // global similar candidates
+      for (const occ of entry.occurrences) {
+        // keep diagnostic-sourced suggestions first, then other similar suggestions
+        const primary = occ.suggests || [];
+        const combined = primary.concat(similarSuggestions.filter((s) => !primary.includes(s)));
+        // dedupe and limit to max 3 suggestions per range
+        const suggestions = Array.from(new Set(combined)).slice(0, 3);
+         if (!suggestions || suggestions.length === 0) continue;
+         if (!occ.range) continue;
 
-      // --- Create a code lens for each suggestion ---
-      for (const [word, ranges] of errorWords.entries()) {
-        const suggestions = suggestionsMap[word];
-        if (!suggestions || suggestions.length === 0) continue;
+        info(word, "occurrence =>", occ.range, "suggestions =>", suggestions);
 
-        if (!Array.isArray(ranges)) continue; // safety check
-
-        ranges.forEach((range) => {
-          suggestions.forEach((suggestion) => {
-            lenses.push(
-              new vscode.CodeLens(range, {
-                title: `💡 '${suggestion}'`,
-                command: "smart-keyword-suggest.fixTypo",
-                arguments: [document.uri, range, suggestion], // single suggestion
-              })
-            );
-          });
+        suggestions.forEach((suggestion) => {
+          lenses.push(
+            new vscode.CodeLens(occ.range, {
+              title: `💡 '${suggestion}'`,
+              command: "smart-keyword-suggest.fixTypo",
+              arguments: [document.uri, occ.range, suggestion], // single suggestion
+            })
+          );
         });
       }
     }
@@ -96,7 +102,7 @@ class TypoCodeLensProvider implements vscode.CodeLensProvider {
 const typoCodeLensProvider = new TypoCodeLensProvider();
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log("✨ Multi-language Keyword Suggest extension activated");
+  info("✨ Multi-language Keyword Suggest extension activated");
 
   // --- Debounced diagnostics update ---
   const debouncedUpdate = debounce(updateDiagnostics, 200);
@@ -136,8 +142,14 @@ export function activate(context: vscode.ExtensionContext) {
         editBuilder.replace(range, suggestion);
       });
 
-      // Remove immediately from errorWords
-      errorWords.delete(oldWord);
+      // Remove only the occurrence that was fixed
+      const entry = errorWords.get(oldWord);
+      if (entry) {
+        entry.occurrences = entry.occurrences.filter(
+          (o) => !(o.range.start.isEqual(range.start) && o.range.end.isEqual(range.end))
+        );
+        if (entry.occurrences.length === 0) errorWords.delete(oldWord);
+      }
 
       // Immediate strikethrough refresh
       updateStrikethrough(editor);
@@ -156,29 +168,29 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(fixTypoCommand);
 
   // --- Command to manually refresh diagnostics and CodeLens ---
-const refreshCommand = vscode.commands.registerCommand(
-  "smart-keyword-suggest.refresh",
-  async () => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) return;
+  const refreshCommand = vscode.commands.registerCommand(
+    "smart-keyword-suggest.refresh",
+    async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) return;
 
-    // Clear caches
-    errorWords.clear();
-    symbolCache.delete(editor.document.uri.toString());
+      // Clear caches
+      errorWords.clear();
+      symbolCache.delete(editor.document.uri.toString());
 
-    // Re-run diagnostics
-    await updateDiagnostics(editor.document);
+      // Re-run diagnostics
+      await updateDiagnostics(editor.document);
 
-    // Refresh CodeLens and strikethrough
-    typoCodeLensProvider.refresh();
-    updateStrikethrough(editor);
+      // Refresh CodeLens and strikethrough
+      typoCodeLensProvider.refresh();
+      updateStrikethrough(editor);
 
-    vscode.window.showInformationMessage(`🔄 Keyword suggestions refreshed`);
-  }
-);
+      vscode.window.showInformationMessage(`🔄 Keyword suggestions refreshed`);
+    }
+  );
 
-// --- Add to context subscriptions ---
-context.subscriptions.push(refreshCommand);
+  // --- Add to context subscriptions ---
+  context.subscriptions.push(refreshCommand);
 
   // --- Initial refresh if editor active ---
   const editor = vscode.window.activeTextEditor;
@@ -186,7 +198,13 @@ context.subscriptions.push(refreshCommand);
 }
 
 export function deactivate() {
-  console.log("❌ Multi-language Keyword Suggest extension deactivated");
+  info("❌ Multi-language Keyword Suggest extension deactivated");
+}
+
+function fetchSuggestWord(diag: vscode.Diagnostic): string {
+  const message = diag.message;
+  const suggestionMatch = message.match(/Did you mean\s*['"`]?([^'"`]+)['"`]?/i);
+  return suggestionMatch ? suggestionMatch[1] : '';
 }
 
 // --- Update diagnostics ---
@@ -206,13 +224,37 @@ async function updateDiagnostics(document: vscode.TextDocument) {
     return;
   }
 
-  diagnostics.forEach((diag) => {
-    if (specialChecks(diag, document.languageId)) return;
+  // iterate so we can continue/skip easily
+  for (const diag of diagnostics) {
+    if (specialChecks(diag, document.languageId)) continue;
     const word = document.getText(diag.range).trim();
-    if (!word) return;
-    if (!errorWords.has(word)) errorWords.set(word, []);
-    errorWords.get(word)?.push(diag.range);
-  });
+    if (!word) continue;
+
+    // Fetch the suggestion for the current diagnostic
+    const suggestion = fetchSuggestWord(diag);
+
+    // ensure an entry exists for this word
+    let entry = errorWords.get(word);
+    if (!entry) {
+      entry = { occurrences: [] as { range: vscode.Range; suggests: string[] }[] };
+      errorWords.set(word, entry);
+    }
+
+    // check if an occurrence with the exact same range already exists
+    const existing = entry.occurrences.find(
+      (o) => o.range.start.isEqual(diag.range.start) && o.range.end.isEqual(diag.range.end)
+    );
+
+    if (existing) {
+      // merge suggestion into existing occurrence (avoid duplicates)
+      if (suggestion && !existing.suggests.includes(suggestion)) {
+        existing.suggests.push(suggestion);
+      }
+    } else {
+      // new occurrence for same word but different position -> keep separate
+      entry.occurrences.push({ range: diag.range, suggests: suggestion ? [suggestion] : [] });
+    }
+  }
 
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.document.uri.toString() === document.uri.toString()) {
@@ -228,8 +270,8 @@ function updateStrikethrough(editor: vscode.TextEditor | undefined) {
   if (!editor) return;
 
   const decorations: vscode.DecorationOptions[] = [];
-  for (const ranges of errorWords.values()) {
-    ranges.forEach((range) => decorations.push({ range }));
+  for (const entry of errorWords.values()) {
+    for (const occ of entry.occurrences) decorations.push({ range: occ.range });
   }
 
   editor.setDecorations(strikeDecoration, decorations);

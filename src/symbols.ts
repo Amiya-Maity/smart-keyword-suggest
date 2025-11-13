@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as ts from "typescript";
+import { info, error } from "./logger";
 
 /**
  * Main function: returns all symbols (variables, functions, classes, etc.)
@@ -33,11 +34,10 @@ export async function getSymbolsInScope(
 
       traverse(symbols);
     } catch (err) {
-      console.error("Error fetching document symbols:", err);
+      error("Error fetching document symbols:", err);
     }
   }
-
-  console.log("Symbols in scope:", names);
+  info("Symbols in scope:", names);
   return names;
 }
 
@@ -51,7 +51,6 @@ function getTSSymbols(document: vscode.TextDocument): string[] {
     ts.ScriptTarget.Latest,
     true
   );
-
   type Scope = Set<string>;
   const scopes: Scope[] = []; // stack of scopes
   const allSymbols: string[] = [];

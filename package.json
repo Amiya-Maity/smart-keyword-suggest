@@ -1,10 +1,10 @@
 {
   "name": "smart-keyword-suggest",
   "displayName": "Smart Keyword Suggest",
-  "description": "Instantly suggests correct keywords or symbols for misspelled terms in JavaScript, TypeScript, Python, and Java — with inline hints and quick fixes.",
-  "version": "0.2.2",
+  "description": "Instantly suggests correct keywords or symbols for misspelled terms in JavaScript, TypeScript, Python, Java, JSX, and TSX — with inline hints and quick fixes.",
+  "version": "0.2.3",
   "publisher": "amiya",
-  "icon":"icon.png",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/amiya-maity/smart-keyword-suggest"
@@ -19,7 +19,9 @@
   ],
   "activationEvents": [
     "onLanguage:javascript",
+    "onLanguage:javascriptreact",
     "onLanguage:typescript",
+    "onLanguage:typescriptreact",
     "onLanguage:python",
     "onLanguage:java"
   ],
@@ -38,7 +40,6 @@
     "keybindings": [
       {
         "command": "smart-keyword-suggest.fixTypo",
-        "key": "ctrl+alt+f",
         "when": "editorTextFocus"
       },
       {
@@ -57,7 +58,16 @@
         "extensions": [
           ".js",
           ".mjs",
-          ".cjs",
+          ".cjs"
+        ]
+      },
+      {
+        "id": "javascriptreact",
+        "aliases": [
+          "JavaScript React",
+          "jsx"
+        ],
+        "extensions": [
           ".jsx"
         ]
       },
@@ -68,7 +78,16 @@
           "ts"
         ],
         "extensions": [
-          ".ts",
+          ".ts"
+        ]
+      },
+      {
+        "id": "typescriptreact",
+        "aliases": [
+          "TypeScript React",
+          "tsx"
+        ],
+        "extensions": [
           ".tsx"
         ]
       },
@@ -129,9 +148,12 @@
     "intellisense",
     "javascript",
     "typescript",
+    "jsx",
+    "tsx",
     "python",
     "java",
-    "ai",
-    "suggestion"
+    "suggestion",
+    "scope-aware",
+    "codelens"
   ]
 }
