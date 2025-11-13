@@ -1,0 +1,10 @@
+/node_modules
+/dist
+/.vscode
+/src/test
+/smart*
+/js*
+
+!/smart*0.2.2.vsix
+vsc*
+icon.svg

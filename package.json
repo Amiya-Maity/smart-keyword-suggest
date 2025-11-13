@@ -1,0 +1,137 @@
+{
+  "name": "smart-keyword-suggest",
+  "displayName": "Smart Keyword Suggest",
+  "description": "Instantly suggests correct keywords or symbols for misspelled terms in JavaScript, TypeScript, Python, and Java — with inline hints and quick fixes.",
+  "version": "0.2.2",
+  "publisher": "amiya",
+  "icon":"icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amiya-maity/smart-keyword-suggest"
+  },
+  "engines": {
+    "vscode": "^1.105.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:python",
+    "onLanguage:java"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "smart-keyword-suggest.fixTypo",
+        "title": "Fix the typo (Smart Keyword Suggest)"
+      },
+      {
+        "command": "smart-keyword-suggest.refresh",
+        "title": "Refresh Keyword Suggestions"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "smart-keyword-suggest.fixTypo",
+        "key": "ctrl+alt+f",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "smart-keyword-suggest.refresh",
+        "key": "ctrl+alt+r",
+        "when": "editorTextFocus"
+      }
+    ],
+    "languages": [
+      {
+        "id": "javascript",
+        "aliases": [
+          "JavaScript",
+          "js"
+        ],
+        "extensions": [
+          ".js",
+          ".mjs",
+          ".cjs",
+          ".jsx"
+        ]
+      },
+      {
+        "id": "typescript",
+        "aliases": [
+          "TypeScript",
+          "ts"
+        ],
+        "extensions": [
+          ".ts",
+          ".tsx"
+        ]
+      },
+      {
+        "id": "python",
+        "aliases": [
+          "Python",
+          "py"
+        ],
+        "extensions": [
+          ".py"
+        ]
+      },
+      {
+        "id": "java",
+        "aliases": [
+          "Java"
+        ],
+        "extensions": [
+          ".java"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack --mode development",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/fast-levenshtein": "^0.0.4",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.105.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.39.1",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.3",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "fast-levenshtein": "^3.0.0"
+  },
+  "keywords": [
+    "keyword",
+    "typo",
+    "lint",
+    "autocomplete",
+    "intellisense",
+    "javascript",
+    "typescript",
+    "python",
+    "java",
+    "ai",
+    "suggestion"
+  ]
+}
