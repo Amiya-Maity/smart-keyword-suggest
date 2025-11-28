@@ -25,6 +25,9 @@ export const LANGUAGE_KEYWORDS: Record<string, string[]> = {
     "import",
     "export",
     "new",
+    "from",
+    "default",
+    
   ],
   typescript: [
     "function",
@@ -56,6 +59,9 @@ export const LANGUAGE_KEYWORDS: Record<string, string[]> = {
     "type",
     "enum",
     "as",
+    "from",
+    "default",
+    
   ],
   python: [
     "def",

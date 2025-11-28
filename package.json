@@ -1,8 +1,8 @@
 {
   "name": "smart-keyword-suggest",
-  "displayName": "Smart Keyword Suggest",
-  "description": "Instantly suggests correct keywords or symbols for misspelled terms in JavaScript, TypeScript, Python, Java, JSX, and TSX — with inline hints and quick fixes.",
-  "version": "0.2.3",
+  "displayName": "VSCode Auto Keyword Fixer (JS/TS/Python/Java)",
+  "description": "Automatically fixes misspelled keywords, symbols, and identifiers in JavaScript, TypeScript, Python, Java, JSX, and TSX. Instant inline hints, auto-suggestions, and quick fixes to speed up your coding.",
+  "version": "0.2.6",
   "publisher": "amiya",
   "icon": "icon.png",
   "repository": {
@@ -15,7 +15,7 @@
   "categories": [
     "Programming Languages",
     "Linters",
-    "Other"
+    "Other" 
   ],
   "activationEvents": [
     "onLanguage:javascript",
@@ -155,5 +155,15 @@
     "suggestion",
     "scope-aware",
     "codelens"
-  ]
+  ],
+  "tags": {
+    "javascript": true,
+    "typescript": true,
+    "python": true,
+    "java": true,
+    "linters": true,
+    "autofix": true,
+    "intellisense": true,
+    "productivity": true
+  }
 }

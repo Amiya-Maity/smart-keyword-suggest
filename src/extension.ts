@@ -103,7 +103,6 @@ const typoCodeLensProvider = new TypoCodeLensProvider();
 
 export function activate(context: vscode.ExtensionContext) {
   info("✨ Multi-language Keyword Suggest extension activated");
-
   // --- Debounced diagnostics update ---
   const debouncedUpdate = debounce(updateDiagnostics, 200);
   // --- Document open/change ---

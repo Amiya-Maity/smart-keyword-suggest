@@ -136,6 +136,17 @@ let timere = "test"; // ❌ 'timere' highlighted
 4. Send back your improved version for review. If your changes help others — I'll publish them to the Marketplace with **proper credits** 🏅
 
 ---
+![Installs](https://img.shields.io/visual-studio-marketplace/i/amiya.smart-keyword-suggest)
+![Downloads](https://img.shields.io/visual-studio-marketplace/d/amiya.smart-keyword-suggest)
+![Version](https://img.shields.io/visual-studio-marketplace/v/amiya.smart-keyword-suggest)
+![Rating](https://img.shields.io/visual-studio-marketplace/r/amiya.smart-keyword-suggest)
+
+
+## Related Extensions
+- ESLint
+- Prettier
+- Error Lens
+- Code Spell Checker
 
 ## License
 

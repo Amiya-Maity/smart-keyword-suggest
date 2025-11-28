@@ -15,7 +15,7 @@ export function specialChecks(
 }
 
 function codeNumber(code: any): number {
-  if (code == null) return NaN;
+  if (code === null) return NaN;
   if (typeof code === "object" && "value" in code) return Number(code.value);
   return Number(code);
 }
@@ -26,14 +26,14 @@ export function checkTypescript(diag: vscode.Diagnostic): boolean {
   }
 
   const code = codeNumber(diag.code);
-  if ([7006, 6133, 2588, 2322].includes(code)) return true;
+  if ([7006, 6133, 2588, 2322,6138,2564].includes(code)) return true;
 
   const msg = (diag.message || "").toLowerCase();
   // ignore JSX/TSX parse errors and structural messages
   if (msg.includes("jsx") || msg.includes("tsx")) return true;
   if (msg.includes("expected {") || msg.includes("'{' expected")) return true;
 
-  if ([2304, 1435].includes(code)) return false;
+  if ([2304, 1435,2570].includes(code)) return false;
   return false;
 }
 
