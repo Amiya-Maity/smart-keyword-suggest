@@ -7,7 +7,14 @@ import { getSymbolsInScope } from "./symbols";
 import { specialChecks } from "./specialChecks";
 
 // --- Supported languages ---
-const SUPPORTED_LANGUAGES = ["javascript", "typescript", "python", "java"];
+const SUPPORTED_LANGUAGES = [
+  "javascript",
+  "javascriptreact",
+  "typescript",
+  "typescriptreact",
+  "python",
+  "java",
+];
 
 // --- Tracks words flagged by diagnostics ---
 // now store multiple occurrences per word so same token at different positions can have different suggestions
@@ -70,11 +77,13 @@ class TypoCodeLensProvider implements vscode.CodeLensProvider {
       for (const occ of entry.occurrences) {
         // keep diagnostic-sourced suggestions first, then other similar suggestions
         const primary = occ.suggests || [];
-        const combined = primary.concat(similarSuggestions.filter((s) => !primary.includes(s)));
+        const combined = primary.concat(
+          similarSuggestions.filter((s) => !primary.includes(s))
+        );
         // dedupe and limit to max 3 suggestions per range
         const suggestions = Array.from(new Set(combined)).slice(0, 3);
-         if (!suggestions || suggestions.length === 0) continue;
-         if (!occ.range) continue;
+        if (!suggestions || suggestions.length === 0) continue;
+        if (!occ.range) continue;
 
         info(word, "occurrence =>", occ.range, "suggestions =>", suggestions);
 
@@ -103,6 +112,7 @@ const typoCodeLensProvider = new TypoCodeLensProvider();
 
 export function activate(context: vscode.ExtensionContext) {
   info("✨ Multi-language Keyword Suggest extension activated");
+  info(vscode.window.activeTextEditor?.document.languageId);
   // --- Debounced diagnostics update ---
   const debouncedUpdate = debounce(updateDiagnostics, 200);
   // --- Document open/change ---
@@ -145,7 +155,11 @@ export function activate(context: vscode.ExtensionContext) {
       const entry = errorWords.get(oldWord);
       if (entry) {
         entry.occurrences = entry.occurrences.filter(
-          (o) => !(o.range.start.isEqual(range.start) && o.range.end.isEqual(range.end))
+          (o) =>
+            !(
+              o.range.start.isEqual(range.start) &&
+              o.range.end.isEqual(range.end)
+            )
         );
         if (entry.occurrences.length === 0) errorWords.delete(oldWord);
       }
@@ -202,13 +216,18 @@ export function deactivate() {
 
 function fetchSuggestWord(diag: vscode.Diagnostic): string {
   const message = diag.message;
-  const suggestionMatch = message.match(/Did you mean\s*['"`]?([^'"`]+)['"`]?/i);
-  return suggestionMatch ? suggestionMatch[1] : '';
+  const suggestionMatch = message.match(
+    /Did you mean\s*['"`]?([^'"`]+)['"`]?/i
+  );
+  return suggestionMatch ? suggestionMatch[1] : "";
 }
 
 // --- Update diagnostics ---
 async function updateDiagnostics(document: vscode.TextDocument) {
-  if (!SUPPORTED_LANGUAGES.includes(document.languageId)) return;
+  if (!SUPPORTED_LANGUAGES.includes(document.languageId)) {
+    // info(`${document.languageId}: Language not supported`);
+    return;
+  }
 
   // Clear previous error words for this document
   errorWords.clear();
@@ -225,6 +244,7 @@ async function updateDiagnostics(document: vscode.TextDocument) {
 
   // iterate so we can continue/skip easily
   for (const diag of diagnostics) {
+    info(diag);
     if (specialChecks(diag, document.languageId)) continue;
     const word = document.getText(diag.range).trim();
     if (!word) continue;
@@ -235,13 +255,17 @@ async function updateDiagnostics(document: vscode.TextDocument) {
     // ensure an entry exists for this word
     let entry = errorWords.get(word);
     if (!entry) {
-      entry = { occurrences: [] as { range: vscode.Range; suggests: string[] }[] };
+      entry = {
+        occurrences: [] as { range: vscode.Range; suggests: string[] }[],
+      };
       errorWords.set(word, entry);
     }
 
     // check if an occurrence with the exact same range already exists
     const existing = entry.occurrences.find(
-      (o) => o.range.start.isEqual(diag.range.start) && o.range.end.isEqual(diag.range.end)
+      (o) =>
+        o.range.start.isEqual(diag.range.start) &&
+        o.range.end.isEqual(diag.range.end)
     );
 
     if (existing) {
@@ -251,7 +275,10 @@ async function updateDiagnostics(document: vscode.TextDocument) {
       }
     } else {
       // new occurrence for same word but different position -> keep separate
-      entry.occurrences.push({ range: diag.range, suggests: suggestion ? [suggestion] : [] });
+      entry.occurrences.push({
+        range: diag.range,
+        suggests: suggestion ? [suggestion] : [],
+      });
     }
   }
 

@@ -5,6 +5,7 @@ export function specialChecks(
   diag: vscode.Diagnostic,
   languageId: string
 ): boolean {
+  info(diag);
   // route TSX/JSX files to the corresponding checks
   if (languageId === "typescript" || languageId === "typescriptreact")
     return checkTypescript(diag);
@@ -26,14 +27,15 @@ export function checkTypescript(diag: vscode.Diagnostic): boolean {
   }
 
   const code = codeNumber(diag.code);
-  if ([7006, 6133, 2588, 2322,6138,2564].includes(code)) return true;
-
   const msg = (diag.message || "").toLowerCase();
+  if (/Did you mean/i.test(msg)) return false;
+  if ([7006, 6133, 2588, 2322, 6138, 2564].includes(code)) return true;
+
   // ignore JSX/TSX parse errors and structural messages
   if (msg.includes("jsx") || msg.includes("tsx")) return true;
   if (msg.includes("expected {") || msg.includes("'{' expected")) return true;
 
-  if ([2304, 1435,2570].includes(code)) return false;
+  if ([2304, 1435, 2570, 2552].includes(code)) return false;
   return false;
 }
 
@@ -43,13 +45,15 @@ export function checkJavascript(diag: vscode.Diagnostic): boolean {
   }
 
   const code = codeNumber(diag.code);
-  if ([7006, 6133, 2588, 2322].includes(code)) return true;
-
   const msg = (diag.message || "").toLowerCase();
+  if (/Did you mean/i.test(msg)) return false;
+
+  if ([7006, 6133, 2588, 2322, 6138, 2564].includes(code)) return true;
+
   if (msg.includes("jsx") || msg.includes("tsx")) return true;
   if (msg.includes("expected {") || msg.includes("'{' expected")) return true;
 
-  if ([2304, 1435].includes(code)) return false;
+  if ([2304, 1435, 2570, 2552].includes(code)) return false;
   return false;
 }
 
@@ -64,5 +68,3 @@ export function checkPython(diag: vscode.Diagnostic): boolean {
   if (diag.message === "Expected indented block") return true;
   return false;
 }
-
-//{"severity":"Warning","message":"\"fuf\" is not defined","range":[{"line":8,"character":0},{"line":8,"character":3}],"source":"Pylance","code":{"value":"reportUndefinedVariable","target":{"$mid":1,"path":"/microsoft/pylance-release/blob/main/docs/diagnostics/reportUndefinedVariable.md","scheme":"https","authority":"github.com"}}}

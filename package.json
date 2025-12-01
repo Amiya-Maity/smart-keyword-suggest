@@ -2,7 +2,7 @@
   "name": "smart-keyword-suggest",
   "displayName": "VSCode Auto Keyword Fixer (JS/TS/Python/Java)",
   "description": "Automatically fixes misspelled keywords, symbols, and identifiers in JavaScript, TypeScript, Python, Java, JSX, and TSX. Instant inline hints, auto-suggestions, and quick fixes to speed up your coding.",
-  "version": "0.2.6",
+  "version": "0.2.8",
   "publisher": "amiya",
   "icon": "icon.png",
   "repository": {
